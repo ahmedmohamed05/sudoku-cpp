@@ -1,6 +1,6 @@
 [submodule "src/libs/input-cpp"]
 	path = src/libs/input-cpp
 	url = https://github.com/ahmedmohamed05/input-cpp.git
-[submodule "src/libs/util"]
-	path = src/libs/util
+[submodule "src/libs/utils"]
+	path = src/libs/utils
 	url = https://github.com/ahmedmohamed05/utils.git
