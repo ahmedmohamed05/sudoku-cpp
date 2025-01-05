@@ -5,33 +5,18 @@
 int main() {
   util::urand();
 
-  Grid::DifficultyLevel gameLevel = ui::readDifficulty();
+  Game game;
 
-  Grid grid(gameLevel);
-
-  while (!grid.isSolved()) {
+  Timer timer;
+  timer.start();
+  while (game.isGameOn()) {
     system("clear");
-    ui::printGrid(grid.getGrid());
 
-    Grid::UserGridItem move = ui::readMove();
+    game.printGrid();
 
-    bool playedSuccessfully = grid.play(move);
-    while (!playedSuccessfully) {
-      std::cerr << "Error Happened maybe for this reasons: \n";
-      std::cerr << "Make sure that row and col are between 1 and 9\n";
-      std::cerr << "Make Sure that value entered is between 1 and 9.\n";
-      std::cerr << "Enter [u] or [r] only.\n";
-      std::cout << "Press Enter to continue.\n";
-
-      std::cin.get();
-      std::cin.get();
-
-      system("clear");
-      ui::printGrid(grid.getGrid());
-      move = ui::readMove();
-      playedSuccessfully = grid.play(move);
-    }
+    game.play();
   }
+  timer.stop();
 
   return 0;
 }
