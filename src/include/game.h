@@ -105,7 +105,13 @@ public:
   bool isGameOn() const { return !_grid.isSolved(); }
 
   void printGrid() {
+    // Column Indicator
+    std::cout << "   1 2 3   4 5 6   7 8 9\n\n";
+
     for (int i = 0; i < 9; i++) {
+      // Rows Indicator
+      std::cout << i + 1 << "  ";
+
       for (int j = 0; j < 9; j++) {
         int cell = _grid.getGrid()[i][j].value;
 
@@ -124,15 +130,16 @@ public:
       std::cout << '\n';
       // Which mean we have printed 3 rows
       if (((i + 1) % 3 == 0) && i != 8) {
-        std::cout << "---------------------\n";
+        // Space in the begging because of the indicator
+        std::cout << "   ---------------------\n";
       }
     }
   }
 
   void play() {
     Grid::UserGridItem move = _readMove();
-
     bool playedSuccessfully = _grid.play(move);
+
     while (!playedSuccessfully) {
       std::cerr << "Error Happened maybe for this reasons: \n";
       std::cerr << "Make sure that row and col are between 1 and 9\n";
@@ -144,7 +151,7 @@ public:
       std::cin.get();
 
       system("clear");
-      printGrid(_grid.getGrid());
+      printGrid();
       move = _readMove();
       playedSuccessfully = _grid.play(move);
     }
