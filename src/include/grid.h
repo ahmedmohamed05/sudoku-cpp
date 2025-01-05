@@ -5,14 +5,24 @@
 #include <stack>
 
 // (value, isPreFilled)
-struct gridItem {
-  int value;
-  bool isPreFilled;
-};
-
-using sudokuGrid = std::array<std::array<gridItem, 9>, 9>;
 
 class Grid {
+
+public:
+  struct gridItem {
+    int value;
+    bool isPreFilled;
+  };
+
+  using sudokuGrid = std::array<std::array<gridItem, 9>, 9>;
+
+  enum Actions { Add, Remove, Undo, Redo, Invalid };
+
+  struct UserGridItem {
+    int row, col, value;
+    Actions action;
+  };
+
 private:
   bool _isValidPlacement(sudokuGrid &grid, int row, int col, int n) {
     // Check row
@@ -68,11 +78,7 @@ private:
   sudokuGrid _grid = {};
   bool _isSolved;
 
-  struct _UserGridItem {
-    int row, col, valued;
-  };
-
-  std::stack<_UserGridItem> _undos, _redos;
+  std::stack<UserGridItem> _undos, _redos;
 
 public:
   enum DifficultyLevel { easy = 1, medium, hard };
@@ -88,7 +94,12 @@ public:
   const sudokuGrid &getGrid() const { return _grid; }
 
   // Returns false if the place is pre-filled or 0 > n or n > 9
-  bool play(int row, int col, int n) {
+  bool play(UserGridItem item) {
+
+    if (item.action == Invalid)
+      return false;
+
+    auto [row, col, n, action] = item;
 
     if (_grid[row][col].isPreFilled)
       return false;
