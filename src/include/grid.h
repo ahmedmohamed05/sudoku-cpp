@@ -24,16 +24,19 @@ public:
   };
 
 private:
-  bool _isValidPlacement(sudokuGrid &grid, int row, int col, int n) {
+  sudokuGrid _grid = {};
+  bool _isSolved;
+
+  bool _isValidPlacement(int row, int col, int n) {
     // Check row
     for (int j = 0; j < 9; j++) {
-      if (grid[row][j].value == n)
+      if (_grid[row][j].value == n)
         return false;
     }
 
     // Check column
     for (int i = 0; i < 9; i++) {
-      if (grid[i][col].value == n)
+      if (_grid[i][col].value == n)
         return false;
     }
 
@@ -42,7 +45,7 @@ private:
     int startCol = (col / 3) * 3;
     for (int i = 0; i < 3; i++) {
       for (int j = 0; j < 3; j++) {
-        if (grid[startRow + i][startCol + j].value == n)
+        if (_grid[startRow + i][startCol + j].value == n)
           return false;
       }
     }
@@ -50,33 +53,36 @@ private:
   }
 
   // Recursive function to generate a complete Sudoku grid
-  bool _generateFullGrid(sudokuGrid &grid, int row, int col) {
+  bool _generateFullGrid(int row, int col) {
+
+    // We need to shuffle first row
+    if (row == 0 && col == 9) {
+      util::shuffle(_grid[0]);
+      util::shuffle(_grid[0]);
+    }
 
     if (row == 9)
       return true; // Base case: all rows filled
 
     if (col == 9)
-      return _generateFullGrid(grid, row + 1, 0); // Move to next row
+      return _generateFullGrid(row + 1, 0); // Move to next row
 
-    if (grid[row][col].value != 0)
-      return _generateFullGrid(grid, row, col + 1); // Skip filled cells
+    if (_grid[row][col].value != 0)
+      return _generateFullGrid(row, col + 1); // Skip filled cells
 
     for (int num = 1; num <= 9; num++) {
-      bool validationResult = _isValidPlacement(grid, row, col, num);
+      bool validationResult = _isValidPlacement(row, col, num);
       if (validationResult) {
-        grid[row][col].value = num; // Place the number
-        if (_generateFullGrid(grid, row, col + 1))
+        _grid[row][col] = {num, true}; // Place the item
+        if (_generateFullGrid(row, col + 1))
           return true;
 
-        grid[row][col].value = 0; // Backtrack
+        _grid[row][col].value = 0; // Backtrack
       }
     }
 
     return false;
   }
-
-  sudokuGrid _grid = {};
-  bool _isSolved;
 
   std::stack<UserGridItem> _undos, _redos;
 
@@ -85,7 +91,7 @@ public:
 
   Grid() {
     for (auto &row : _grid) {
-      row.fill({0, false});
+      row.fill({0, true});
     }
   }
 
@@ -96,15 +102,32 @@ public:
   // Returns false if the place is pre-filled or 0 > n or n > 9
   bool play(UserGridItem item) {
 
-    if (item.action == Invalid)
+    auto [row, col, n, action] = item;
+
+    if (action == Invalid)
       return false;
 
-    auto [row, col, n, action] = item;
+    if (action == Undo)
+      return true;
+
+    if (action == Redo)
+      return true;
+
+    if (!input::isNumberBetween(row, 0, 8))
+      return false;
+
+    if (!input::isNumberBetween(col, 0, 8))
+      return false;
 
     if (_grid[row][col].isPreFilled)
       return false;
 
-    if (n < 0 || n > 9)
+    if (action == Remove) {
+      _grid[row][col].value = 0;
+      return true;
+    }
+
+    if (!input::isNumberBetween(n, 1, 9))
       return false;
 
     _grid[row][col].value = n;
@@ -145,9 +168,10 @@ private:
 
 public:
   void generateNewGrid(DifficultyLevel level) {
-    sudokuGrid grid = {{0, false}};
 
-    if (!_generateFullGrid(grid, 0, 0)) {
+    bool generatedSuccessfully = _generateFullGrid(0, 0);
+
+    if (!generatedSuccessfully) {
       std::cerr << "Error while generating grid\n";
       exit(EXIT_FAILURE);
     }
@@ -165,14 +189,12 @@ public:
       int col = util::randomNumber<int>(0, 8);
 
       // check if the cell already removed
-      if (grid[row][col].value == 0)
+      if (_grid[row][col].value == 0)
         continue;
 
-      grid[row][col].value = 0;
-      grid[row][col].isPreFilled = false;
+      _grid[row][col].value = 0;
+      _grid[row][col].isPreFilled = false;
       cellsToRemove--;
     }
-
-    _grid = grid;
   }
 };

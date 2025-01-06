@@ -68,14 +68,16 @@ private:
 
     // Removeing Item
     if (size == 2) {
-      return {row, col, -1, Grid::Remove};
+      // Starting from zero
+      return {row - 1, col - 1, -1, Grid::Remove};
     }
 
     // Otherwise It's to insert
     int value = std::stoi(vInput.at(2));
 
     if (input::isNumberBetween(value, 1, 9)) {
-      return {row, col, value, Grid::Add};
+      // Starting from zero
+      return {row - 1, col - 1, value, Grid::Add};
     }
 
     return {-1, -1, -1, Grid::Invalid};
@@ -106,7 +108,7 @@ public:
 
   void printGrid() {
     // Column Indicator
-    std::cout << "   1 2 3   4 5 6   7 8 9\n\n";
+    std::cout << "   1 2 3   4 5 6   7 8 9\n";
 
     for (int i = 0; i < 9; i++) {
       // Rows Indicator
@@ -144,10 +146,10 @@ public:
       std::cerr << "Error Happened maybe for this reasons: \n";
       std::cerr << "Make sure that row and col are between 1 and 9\n";
       std::cerr << "Make Sure that value entered is between 1 and 9.\n";
+      std::cerr << "You can't remove a pre-filled cell.\n";
       std::cerr << "Enter [u] or [r] only.\n";
       std::cout << "Press Enter to continue.\n";
 
-      std::cin.get();
       std::cin.get();
 
       system("clear");
