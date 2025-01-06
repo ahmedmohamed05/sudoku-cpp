@@ -3,6 +3,7 @@
 #include "../libs/utils/util.h"
 #include "./grid.h"
 #include <array>
+#include <cstdlib>
 #include <iostream>
 
 class Game {

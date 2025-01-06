@@ -17,12 +17,9 @@ int main() {
     game.play();
   }
   timer.stop();
-
   system("clear");
   game.printGrid();
-  std::cout << "Excellent Job You Solved It.\n";
-  std::cout << "You Took " << timer.getHours() << ":" << timer.getMinutes()
-            << ":" << timer.getSeconds() << " To Solve The Puzzle.\n";
+  timer.printElapsedTime();
 
   return 0;
 }

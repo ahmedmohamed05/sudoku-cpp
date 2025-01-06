@@ -6,24 +6,22 @@
 #include <stack>
 #include <unordered_set>
 
-// (value, isPreFilled)
-
 class Grid {
 
 public:
-  struct gridItem {
-    int value;
-    bool isPreFilled;
-  };
-
-  using sudokuGrid = std::array<std::array<gridItem, 9>, 9>;
-
   enum Actions { Add, Remove, Undo, Redo, Invalid };
 
   struct UserGridItem {
     int row, col, value;
     Actions action;
   };
+
+  struct gridItem {
+    int value;
+    bool isPreFilled;
+  };
+
+  typedef std::array<std::array<gridItem, 9>, 9> sudokuGrid;
 
 private:
   sudokuGrid _grid = {};
@@ -95,6 +93,7 @@ public:
     for (auto &row : _grid) {
       row.fill({0, true});
     }
+    _isSolved = false;
   }
 
   Grid(DifficultyLevel level) { generateNewGrid(level); }
@@ -260,7 +259,7 @@ public:
 
 private:
   int _calculateCellsToRemove(DifficultyLevel level) {
-    int min = 0, max = 1;
+    int min = 0, max = 0;
     switch (level) {
     case easy:
       min = 20;
@@ -301,13 +300,11 @@ public:
       int row = util::randomNumber<int>(0, 8);
       int col = util::randomNumber<int>(0, 8);
 
-      // check if the cell already removed
-      if (_grid[row][col].value == 0)
-        continue;
-
-      _grid[row][col].value = 0;
-      _grid[row][col].isPreFilled = false;
-      cellsToRemove--;
+      if (_grid[row][col].value != 0) {
+        _grid[row][col].value = 0;
+        _grid[row][col].isPreFilled = false;
+        cellsToRemove--;
+      }
     }
   }
 };
