@@ -100,23 +100,29 @@ public:
   const sudokuGrid &getGrid() const { return _grid; }
 
   // Returns false if the place is pre-filled or 0 > n or n > 9
-  bool play(UserGridItem item) {
+  bool play(UserGridItem move, bool recordMove = true) {
 
-    auto [row, col, n, action] = item;
+    auto [row, col, n, action] = move;
 
     if (action == Invalid)
       return false;
 
-    if (action == Undo)
+    if (action == Undo) {
+      undo();
       return true;
+    }
 
-    if (action == Redo)
+    if (action == Redo) {
+      redo();
       return true;
+    }
 
-    if (!input::isNumberBetween(row, 0, 8))
-      return false;
+    // record the move if it's not undo/redo and it's valid
+    if (recordMove)
+      _undos.push(move);
 
-    if (!input::isNumberBetween(col, 0, 8))
+    if (!(input::isNumberBetween(row, 0, 8) &&
+          input::isNumberBetween(col, 0, 8)))
       return false;
 
     if (_grid[row][col].isPreFilled)
@@ -132,8 +138,6 @@ public:
 
     _grid[row][col].value = n;
 
-    _undos.push({row, col, n});
-
     // TODO: check for sudoku rolls
 
     return true;
@@ -141,9 +145,34 @@ public:
 
   bool isSolved() const { return _isSolved; }
 
-  void undo() {}
+  void undo() {
 
-  void redo() {}
+    if (_undos.size() == 0)
+      return;
+
+    UserGridItem lastMove = _undos.top();
+
+    _undos.pop();
+    _redos.push(lastMove);
+
+    // Reverse the action
+    lastMove.action = lastMove.action == Add ? Remove : Add;
+
+    // Play the move without recording it
+    play(lastMove, false);
+  }
+
+  void redo() {
+    if (_redos.size() == 0)
+      return;
+
+    UserGridItem move = _redos.top();
+    _redos.pop();
+    _undos.push(move);
+
+    // Play the move without recording it
+    play(move, false);
+  }
 
 private:
   int _calculateCellsToRemove(DifficultyLevel level) {
