@@ -1,8 +1,10 @@
 #pragma once
 #include "../libs/utils/util.h"
+#include "fstream"
 #include <array>
 #include <iostream>
 #include <stack>
+#include <unordered_set>
 
 // (value, isPreFilled)
 
@@ -99,8 +101,83 @@ public:
 
   const sudokuGrid &getGrid() const { return _grid; }
 
+private:
+  bool _isValidRow(int row) {
+    std::unordered_set<int> seen;
+    for (const auto &item : _grid[row]) {
+      if (seen.find(item.value) != seen.end())
+        return false;
+
+      seen.insert(item.value);
+    }
+    return true;
+  }
+
+  bool _isValidCol(int col) {
+    std::unordered_set<int> seen;
+    for (int i = 0; i < 9; i++) {
+      const auto &item = _grid[i][col];
+      if (seen.find(item.value) != seen.end())
+        return false;
+
+      seen.insert(item.value);
+    }
+    return true;
+  }
+
+  bool _isValidSubGrid(int row, int col) {
+    std::unordered_set<int> seen;
+
+    int startRow = (row / 3) * 3;
+    int startCol = (col / 3) * 3;
+
+    // Sub-grids are 3X3 2D-arrays
+    for (int i = startRow; i < 3; i++) {
+      for (int j = startCol; j < 3; j++) {
+
+        const auto &item = _grid[i][j];
+
+        if (seen.find(item.value) != seen.end())
+          return false;
+
+        seen.insert(item.value);
+      }
+    }
+
+    return true;
+  }
+
+  bool _isValidSolution() {
+    // check if the grid full first
+    for (auto &row : _grid) {
+      for (auto &col : row) {
+        if (col.value == 0)
+          return false;
+      }
+    }
+
+    // Check rows and columns solutions
+    for (int i = 0; i < 9; i++) {
+      // if it's not valid row and col
+      if (!(_isValidRow(i) && _isValidCol(i)))
+        return false;
+
+      // Check sub-grid
+      for (int j = 0; j < 9; j++) {
+        if (!_isValidSubGrid(i, j))
+          return false;
+      }
+    }
+
+    return true;
+  }
+
+public:
   // Returns false if the place is pre-filled or 0 > n or n > 9
   bool play(UserGridItem move, bool recordMove = true) {
+
+    if (_isSolved)
+      return false;
 
     auto [row, col, n, action] = move;
 
@@ -117,10 +194,6 @@ public:
       return true;
     }
 
-    // record the move if it's not undo/redo and it's valid
-    if (recordMove)
-      _undos.push(move);
-
     if (!(input::isNumberBetween(row, 0, 8) &&
           input::isNumberBetween(col, 0, 8)))
       return false;
@@ -129,16 +202,28 @@ public:
       return false;
 
     if (action == Remove) {
-      _grid[row][col].value = 0;
-      return true;
+      _grid[row][col].value = 0; // reset cell value
+    } else {
+      if (!input::isNumberBetween(n, 1, 9))
+        return false;
+
+      _grid[row][col].value = n; // put the value inside the cell
     }
 
-    if (!input::isNumberBetween(n, 1, 9))
-      return false;
+    // record the move if it's not undo/redo and it's valid
+    if (recordMove)
+      _undos.push(move);
 
-    _grid[row][col].value = n;
+    if (_isValidSolution()) {
 
-    // TODO: check for sudoku rolls
+      while (_undos.size() > 0)
+        _undos.pop();
+
+      while (_redos.size() > 0)
+        _redos.pop();
+
+      _isSolved = true;
+    }
 
     return true;
   }
@@ -146,7 +231,6 @@ public:
   bool isSolved() const { return _isSolved; }
 
   void undo() {
-
     if (_undos.size() == 0)
       return;
 
