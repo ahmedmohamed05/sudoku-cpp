@@ -45,6 +45,11 @@ private:
     }
 
     std::string firstItem = vInput.at(0);
+
+    if (firstItem == "q") {
+      exit(EXIT_SUCCESS);
+    }
+
     std::size_t size = vInput.size();
 
     // Undo/Redo
@@ -57,6 +62,12 @@ private:
 
       return {-1, -1, -1, Grid::Invalid};
     }
+
+    if (!isdigit(firstItem[0]))
+      return {-1, -1, -1, Grid::Invalid};
+
+    if (!isdigit(vInput.at(1)[0]))
+      return {-1, -1, -1, Grid::Invalid};
 
     int row = std::stoi(firstItem);
     int col = std::stoi(vInput.at(1));
@@ -72,6 +83,9 @@ private:
       // Starting from zero
       return {row - 1, col - 1, -1, Grid::Remove};
     }
+
+    if (!isdigit(vInput.at(2)[0]))
+      return {-1, -1, -1, Grid::Invalid};
 
     // Otherwise It's to insert
     int value = std::stoi(vInput.at(2));
@@ -90,8 +104,9 @@ private:
 
     std::cout << "[row] [col] [value] For inserting.\n";
     std::cout << "[row] [col] For removeing.\n";
-    std::cout << "Enter [u] For Undo.\n";
-    std::cout << "Enter [r] For Redo.\n";
+    std::cout << "Enter [u] To Undo.\n";
+    std::cout << "Enter [r] To Redo.\n";
+    std::cout << "Enter [q] To quit.\n";
 
     std::string userInput = input::readString("Enter Your Action: ");
     item = _evaluateInput(userInput);

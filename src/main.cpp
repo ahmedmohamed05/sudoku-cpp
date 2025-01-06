@@ -19,6 +19,8 @@ int main() {
   timer.stop();
   system("clear");
   game.printGrid();
+  std::cout << "Excellent Job You Solved It.\n";
+  std::cout << "You Took: ";
   timer.printElapsedTime();
 
   return 0;
